@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Athletes Table – Fuel</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body{margin:0;font-family:-apple-system,system-ui;background:#0e0e0e;color:#f2f2f2}
+    .wrap{max-width:900px;margin:0 auto;padding:20px}
+    .card{border:1px solid #2a2a2a;border-radius:14px;padding:14px;margin-top:14px;background:#151515}
+    input,button{width:100%;padding:12px;border-radius:12px;border:1px solid #2a2a2a;background:#101010;color:#f2f2f2}
+    button{background:rgba(191,160,70,.15);border-color:rgba(191,160,70,.7);font-weight:800;cursor:pointer}
+    h1{margin:0;color:#bfa046;letter-spacing:.12em;font-size:14px}
+    h2{margin:6px 0 0 0;font-size:18px}
+    .muted{color:#b8b8b8;font-size:12px;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>ATHLETES TABLE</h1>
+      <h2>Fuel Dashboard (iPad quick setup)</h2>
+      <div class="muted">Paste Supabase URL + anon key, then sign in.</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Supabase Project URL</div>
+      <input id="url" placeholder="https://xxxxx.supabase.co" />
+      <div class="muted" style="margin-top:10px">Supabase anon public key</div>
+      <input id="key" placeholder="eyJhbGciOi..." />
+      <button id="save" style="margin-top:12px">Save & Connect</button>
+      <div class="muted" id="msg1"></div>
+    </div>
+
+    <div class="card" id="login" style="display:none">
+      <div class="muted">Email</div>
+      <input id="email" />
+      <div class="muted" style="margin-top:10px">Password</div>
+      <input id="pass" type="password" />
+      <button id="go" style="margin-top:12px">Sign in</button>
+      <div class="muted" id="msg2"></div>
+    </div>
+
+    <div class="card" id="ok" style="display:none">
+      ✅ Connected and signed in.
+      <div class="muted">Next: I’ll give you the full dashboard file once this page is live.</div>
+    </div>
+  </div>
+
+  <script>
+    const LS_URL="at_url", LS_KEY="at_key";
+    let sb=null;
+
+    function connect(){
+      const url=localStorage.getItem(LS_URL), key=localStorage.getItem(LS_KEY);
+      if(!url||!key) return false;
+      sb = window.supabase.createClient(url,key);
+      return true;
+    }
+
+    async function boot(){
+      if(!connect()) return;
+      document.getElementById("login").style.display="block";
+      const { data } = await sb.auth.getSession();
+      if(data.session){
+        document.getElementById("ok").style.display="block";
+      }
+    }
+
+    document.getElementById("save").onclick=async ()=>{
+      localStorage.setItem(LS_URL, document.getElementById("url").value.trim());
+      localStorage.setItem(LS_KEY, document.getElementById("key").value.trim());
+      document.getElementById("msg1").textContent="Saved. Now sign in below.";
+      await boot();
+    };
+
+    document.getElementById("go").onclick=async ()=>{
+      document.getElementById("msg2").textContent="";
+      try{
+        const email=document.getElementById("email").value.trim();
+        const password=document.getElementById("pass").value;
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if(error) throw error;
+        document.getElementById("ok").style.display="block";
+        document.getElementById("msg2").textContent="Signed in ✅";
+      }catch(e){
+        document.getElementById("msg2").textContent=e.message || e;
+      }
+    };
+
+    boot();
+  </script>
+</body>
+</html>
