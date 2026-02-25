@@ -1,7 +1,106 @@
 <!doctype html>
 <html>
-  <body style="background:#0e0e0e;color:#f2f2f2;font-family:-apple-system,system-ui;padding:30px">
-    <h1 style="color:#bfa046;letter-spacing:.1em">ATHLETES TABLE</h1>
-    <p>GitHub Pages is working ✅</p>
-  </body>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Athletes Table – Fuel Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body{margin:0;font-family:-apple-system,system-ui;background:#0e0e0e;color:#f2f2f2}
+    .wrap{max-width:900px;margin:0 auto;padding:20px}
+    .card{border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-top:16px;background:#151515}
+    input,button{width:100%;padding:12px;border-radius:12px;border:1px solid #2a2a2a;background:#101010;color:#f2f2f2}
+    button{background:rgba(191,160,70,.15);border-color:rgba(191,160,70,.7);font-weight:800;cursor:pointer;margin-top:12px}
+    h1{margin:0;color:#bfa046;letter-spacing:.12em;font-size:14px}
+    h2{margin:6px 0 0 0;font-size:18px}
+    .muted{color:#b8b8b8;font-size:12px;margin-top:8px}
+    .success{color:#4caf50;margin-top:8px}
+    .error{color:#ff5252;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>ATHLETES TABLE</h1>
+      <h2>Fuel Dashboard</h2>
+      <div class="muted">Connect Supabase, then sign in.</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Supabase Project URL</div>
+      <input id="url" placeholder="https://xxxxx.supabase.co" />
+      <div class="muted">Supabase anon public key</div>
+      <input id="key" placeholder="eyJhbGciOi..." />
+      <button onclick="saveKeys()">Save & Connect</button>
+      <div id="connectMsg"></div>
+    </div>
+
+    <div class="card" id="loginCard" style="display:none;">
+      <div class="muted">Email</div>
+      <input id="email" />
+      <div class="muted">Password</div>
+      <input id="password" type="password" />
+      <button onclick="login()">Sign in</button>
+      <div id="loginMsg"></div>
+    </div>
+
+    <div class="card" id="dashboard" style="display:none;">
+      <div class="success">✅ Connected and signed in.</div>
+      <div class="muted">Your backend is working.</div>
+    </div>
+  </div>
+
+<script>
+let supabaseClient = null;
+
+function saveKeys(){
+  const url = document.getElementById("url").value.trim();
+  const key = document.getElementById("key").value.trim();
+
+  if(!url || !key){
+    document.getElementById("connectMsg").innerHTML = "<div class='error'>Enter both values</div>";
+    return;
+  }
+
+  localStorage.setItem("sb_url", url);
+  localStorage.setItem("sb_key", key);
+
+  supabaseClient = window.supabase.createClient(url,key);
+  document.getElementById("connectMsg").innerHTML = "<div class='success'>Saved. Now sign in.</div>";
+  document.getElementById("loginCard").style.display = "block";
+}
+
+async function login(){
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if(!supabaseClient){
+    document.getElementById("loginMsg").innerHTML = "<div class='error'>Connect Supabase first</div>";
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+  if(error){
+    document.getElementById("loginMsg").innerHTML = "<div class='error'>" + error.message + "</div>";
+  } else {
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("loginMsg").innerHTML = "<div class='success'>Signed in successfully</div>";
+  }
+}
+
+window.onload = function(){
+  const savedUrl = localStorage.getItem("sb_url");
+  const savedKey = localStorage.getItem("sb_key");
+
+  if(savedUrl && savedKey){
+    document.getElementById("url").value = savedUrl;
+    document.getElementById("key").value = savedKey;
+    supabaseClient = window.supabase.createClient(savedUrl,savedKey);
+    document.getElementById("loginCard").style.display = "block";
+  }
+}
+</script>
+
+</body>
 </html>
